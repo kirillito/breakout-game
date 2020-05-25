@@ -1,0 +1,140 @@
+<html>
+<head></head>
+<body>
+	<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+	<script>
+		var canvas;
+		var canvasContext;
+
+		var ballX = 50;
+		var ballSpeedX = 10;
+		var ballY = 50;
+		var ballSpeedY = 10;
+
+		var paddleX = 250;
+		const PADDLE_THICKNESS = 10;
+		const PADDLE_WIDTH = 100;
+    const BALL_RADIUS = 10;
+
+		const STARTING_LIVES = 3;
+		var playerScore = 0;
+    var playerLives = STARTING_LIVES;
+
+		var showingLoseScreen = false;
+
+		window.onload = function() {
+			canvas = document.getElementById('gameCanvas');
+			canvasContext = canvas.getContext('2d');
+
+			var framesPerSecond = 30;
+			setInterval(function() {
+				animate();
+				draw();
+			}, 1000/framesPerSecond);
+
+			canvas.addEventListener('mousemove', 
+				function(e) {
+					var mousePos = calculateMousePos(e);
+					paddleX = mousePos.x - PADDLE_WIDTH/2;
+				}
+			);
+
+			canvas.addEventListener('mousedown', handleMouseClick);
+		}
+
+		function calculateMousePos(e) {
+			var rect = canvas.getBoundingClientRect();
+			var root = document.documentElement;
+			var mouseX = e.clientX - rect.left - root.scrollLeft
+			var mouseY = e.clientY - rect.top - root.scrollTop
+
+			return {
+				x:mouseX,
+				y:mouseY
+			}
+		}
+
+		function handleMouseClick(e) {
+			if(showingLooseScreen) {
+				playerScore = 0;
+				showingLooseScreen = false;
+			}
+		}
+
+		function ballReset() {
+      if (playerLives <= 0) {
+				showingLooseScreen = true;
+			}
+
+			ballSpeedX = -ballSpeedX;
+			ballX = canvas.width/2
+			ballY = canvas.height-PADDLE_THICKNESS-BALL_RADIUS;
+      paddleX = (canvas.width-PADDLE_WIDTH)/2;
+		}
+
+		function animate() {
+			if(showingLoseScreen) {
+				return;
+			}
+
+			ballX = ballX + ballSpeedX;
+			ballY = ballY + ballSpeedY;
+
+			if (ballY <=  0) {
+				ballSpeedY = -ballSpeedY
+			}
+			if (ballY >= canvas.height-PADDLE_THICKNESS) {
+				if (ballX >= paddleX && ballX <= paddleX+PADDLE_WIDTH) {
+					ballSpeedY = -ballSpeedY
+
+					var deltaX = ballX - (paddleX + PADDLE_WIDTH/2);
+					ballSpeedX = deltaX * 0.35;
+				} else {
+					playerLives--;
+					ballReset()
+				}
+			}
+			if (ballX >= canvas.width || ballX <= 0) {
+				ballSpeedX = -ballSpeedX
+			}
+
+		}
+
+		function draw() {	
+			// background
+			drawRectangle(0,0,canvas.width,canvas.height,'black');
+
+			if(showingLoseScreen) {
+				canvasContext.fillStyle = 'white';
+
+				canvasContext.fillText("You're score: " + playerScore, 350, 200);
+
+				canvasContext.fillText("click to continue", 350, 500);
+				return;
+			}
+
+			// rackets
+			drawRectangle(paddleX,canvas.height - PADDLE_THICKNESS,PADDLE_WIDTH,PADDLE_THICKNESS,'white');
+
+			// ball
+			drawCircle(ballX, ballY, BALL_RADIUS, 'yellow')
+
+			canvasContext.fillStyle = 'white';
+			canvasContext.fillText(playerScore, canvas.width - 100, 10)
+		}
+
+		function drawRectangle(leftX, topY, width, height, drawColor) {
+			canvasContext.fillStyle = drawColor;
+			canvasContext.fillRect(leftX,topY,width,height);
+		}
+
+		function drawCircle(centerX, centerY, radius, color) {
+			canvasContext.fillStyle = color;
+			canvasContext.beginPath();
+			canvasContext.arc(centerX, centerY, radius, 0, Math.PI*2, true)
+			canvasContext.fill();
+		}
+	</script>
+</body>
+</html>
