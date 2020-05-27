@@ -7,18 +7,29 @@
 		var canvas;
 		var canvasContext;
 
+		const TOP_INFO_HEIGHT = 20
+
 		var ballX = 50;
 		var ballSpeedX = 10;
 		var ballY = 50;
 		var ballSpeedY = 10;
 
 		var paddleX = 250;
+		var paddleY = 590;
 		const PADDLE_THICKNESS = 10;
 		const PADDLE_WIDTH = 100;
-    const BALL_RADIUS = 10;
+    const BALL_RADIUS = 7;
 
-		const STARTING_LIVES = 3;
+		const BRICK_W = 80;
+		const BRICK_H = 20;
+		const BRICK_GAP = 2;
+		const BRICK_COLS = 10;
+		const BRICK_ROWS = 14;
+		var brickGrid = new Array(BRICK_ROWS * BRICK_COLS); 
+
 		var playerScore = 0;
+		const BRICK_SCORE = 10;		
+		const STARTING_LIVES = 3;
     var playerLives = STARTING_LIVES;
 
 		var showingLoseScreen = false;
@@ -26,6 +37,9 @@
 		window.onload = function() {
 			canvas = document.getElementById('gameCanvas');
 			canvasContext = canvas.getContext('2d');
+			
+			paddleY = canvas.height - 10;
+			bricksReset();
 
 			var framesPerSecond = 30;
 			setInterval(function() {
@@ -41,6 +55,8 @@
 			);
 
 			canvas.addEventListener('mousedown', handleMouseClick);
+
+			ballReset();
 		}
 
 		function calculateMousePos(e) {
@@ -56,21 +72,88 @@
 		}
 
 		function handleMouseClick(e) {
-			if(showingLooseScreen) {
+			if(showingLoseScreen) {
 				playerScore = 0;
-				showingLooseScreen = false;
+				playerLives = STARTING_LIVES;
+				showingLoseScreen = false;
+
+				bricksReset();
+				ballReset();
 			}
 		}
 
 		function ballReset() {
       if (playerLives <= 0) {
-				showingLooseScreen = true;
+				showingLoseScreen = true;
 			}
 
 			ballSpeedX = -ballSpeedX;
 			ballX = canvas.width/2
-			ballY = canvas.height-PADDLE_THICKNESS-BALL_RADIUS;
+			ballY = paddleY-PADDLE_THICKNESS-BALL_RADIUS*2;
       paddleX = (canvas.width-PADDLE_WIDTH)/2;
+		}
+
+		function bricksReset() {
+			for (var i=0; i<BRICK_ROWS * BRICK_COLS; i++) {
+				brickGrid[i]	= 1;
+			}
+		}
+
+		function doesBrickExist(row, col) {
+			var brickIndex = brickCoordToIndex(row, col);
+			return (brickGrid[brickIndex] == 1);
+		}
+
+		function brickCoordToIndex(row, col) {
+			return col + BRICK_COLS * row;
+		}
+
+		function breakAndBounceOffBrickAtPixelCoord(x, y) {
+			var col = Math.floor(x/BRICK_W);
+			var row = Math.floor(y/BRICK_H);
+
+			// outside the brick area - don't do anything
+			if (col < 0 || col >= BRICK_COLS || row < 0 || row >= BRICK_ROWS) 
+				return;
+
+			var brickIndex = brickCoordToIndex(row, col);
+			// if brick is not removed
+			if (brickGrid[brickIndex] == 1) {
+				previousCol = Math.floor((ballX-ballSpeedX) / BRICK_W);
+				previousRow = Math.floor((ballY-ballSpeedY) / BRICK_H);
+
+				var bothTestsFailed = true;
+
+				// ball changed columns of the brick grid
+				if (previousCol != col) {
+					// make sure that there is no horizontally adjacent brick from where the ball is coming
+					var	adjacentBrickIndex	=	brickCoordToIndex(row, previousCol);
+					if (brickGrid[adjacentBrickIndex] != 1)	{
+						ballSpeedX = -ballSpeedX;
+						bothTestsFailed	= false;
+					}
+				}
+
+				// ball changed rows of the brick grid
+				if (previousRow != row) {
+					// make sure that there is no vertically adjacent brick from where the ball is coming
+					var	adjacentBrickIndex	=	brickCoordToIndex(previousRow, col);
+					if (brickGrid[adjacentBrickIndex] != 1)	{
+						ballSpeedY = -ballSpeedY;
+						bothTestsFailed	= false;
+					}
+				}
+
+				// the ball hit three bricks in L-like shape - reverse movement 
+				if (bothTestsFailed) {
+					ballSpeedX = -ballSpeedX;
+      		ballSpeedY = -ballSpeedY;
+				}
+
+				brickGrid[brickIndex] = 0;
+				playerScore += BRICK_SCORE;
+			}
+			return;
 		}
 
 		function animate() {
@@ -81,24 +164,29 @@
 			ballX = ballX + ballSpeedX;
 			ballY = ballY + ballSpeedY;
 
-			if (ballY <=  0) {
+			if (ballY <=  BALL_RADIUS) {
 				ballSpeedY = -ballSpeedY
 			}
-			if (ballY >= canvas.height-PADDLE_THICKNESS) {
-				if (ballX >= paddleX && ballX <= paddleX+PADDLE_WIDTH) {
-					ballSpeedY = -ballSpeedY
+			if (ballY >= paddleY-PADDLE_THICKNESS-BALL_RADIUS 
+					&& ballX >= paddleX && ballX <= paddleX+PADDLE_WIDTH
+					&& ballSpeedY > 0) {
+				ballSpeedY = -ballSpeedY
 
-					var deltaX = ballX - (paddleX + PADDLE_WIDTH/2);
-					ballSpeedX = deltaX * 0.35;
-				} else {
+				var deltaX = ballX - (paddleX + PADDLE_WIDTH/2);
+				ballSpeedX = deltaX * 0.35;
+			} else if (ballY >= canvas.height) {
 					playerLives--;
-					ballReset()
-				}
+					if (!playerLives) {
+						showingLoseScreen = true;
+					}
+
+					ballReset();
 			}
-			if (ballX >= canvas.width || ballX <= 0) {
+			if (ballX >= canvas.width-BALL_RADIUS || ballX <= BALL_RADIUS) {
 				ballSpeedX = -ballSpeedX
 			}
 
+			breakAndBounceOffBrickAtPixelCoord(ballX, ballY);
 		}
 
 		function draw() {	
@@ -114,14 +202,30 @@
 				return;
 			}
 
-			// rackets
-			drawRectangle(paddleX,canvas.height - PADDLE_THICKNESS,PADDLE_WIDTH,PADDLE_THICKNESS,'white');
+			drawBricks();
+
+			// paddle
+			drawRectangle(paddleX,paddleY - PADDLE_THICKNESS,PADDLE_WIDTH,PADDLE_THICKNESS,'white');
 
 			// ball
 			drawCircle(ballX, ballY, BALL_RADIUS, 'yellow')
 
 			canvasContext.fillStyle = 'white';
-			canvasContext.fillText(playerScore, canvas.width - 100, 10)
+			canvasContext.fillText("Lives: " + playerLives, canvas.width - 200, 10)
+			canvasContext.fillText("Score: " + playerScore, canvas.width - 100, 10)
+		}
+
+		function drawBricks()	{
+			for (var i=0;	i<BRICK_ROWS;	i++) {
+				for (var j=0;	j<BRICK_COLS;	j++) {
+					if (doesBrickExist(i, j)) {
+						var	brickX = j * BRICK_W;
+						var	brickY = i * BRICK_H + TOP_INFO_HEIGHT;
+
+						drawRectangle(brickX,	brickY, BRICK_W - BRICK_GAP, BRICK_H - BRICK_GAP, 'blue');
+					}
+				}
+			}
 		}
 
 		function drawRectangle(leftX, topY, width, height, drawColor) {
