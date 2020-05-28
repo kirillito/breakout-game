@@ -25,7 +25,8 @@
 		const BRICK_GAP = 2;
 		const BRICK_COLS = 10;
 		const BRICK_ROWS = 14;
-		var brickGrid = new Array(BRICK_ROWS * BRICK_COLS); 
+		var brickGrid = new Array(BRICK_ROWS * BRICK_COLS);
+		var brickCounter = 0;
 
 		var playerScore = 0;
 		const BRICK_SCORE = 10;		
@@ -33,6 +34,7 @@
     var playerLives = STARTING_LIVES;
 
 		var showingLoseScreen = false;
+		var showingWinScreen = false;
 
 		window.onload = function() {
 			canvas = document.getElementById('gameCanvas');
@@ -80,6 +82,12 @@
 				bricksReset();
 				ballReset();
 			}
+			else if(showingWinScreen) {
+				showingWinScreen = false;
+
+				bricksReset();
+				ballReset();
+			}
 		}
 
 		function ballReset() {
@@ -94,8 +102,9 @@
 		}
 
 		function bricksReset() {
-			for (var i=0; i<BRICK_ROWS * BRICK_COLS; i++) {
+			for (var i=3*BRICK_COLS; i<BRICK_ROWS * BRICK_COLS; i++) {
 				brickGrid[i]	= 1;
+				brickCounter++;
 			}
 		}
 
@@ -151,7 +160,12 @@
 				}
 
 				brickGrid[brickIndex] = 0;
+				brickCounter--;
 				playerScore += BRICK_SCORE;
+				
+				if (brickCounter == 0) {
+					showingWinScreen = true;
+				}
 			}
 			return;
 		}
@@ -197,6 +211,13 @@
 				canvasContext.fillStyle = 'white';
 
 				canvasContext.fillText("You're score: " + playerScore, 350, 200);
+
+				canvasContext.fillText("click to continue", 350, 500);
+				return;
+			} else if(showingWinScreen) {
+				canvasContext.fillStyle = 'white';
+
+				canvasContext.fillText("You Win! You're score: " + playerScore, 350, 200);
 
 				canvasContext.fillText("click to continue", 350, 500);
 				return;
