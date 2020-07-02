@@ -14,19 +14,8 @@ function initInput() {
 }
 
 function handleMouseClick(e) {
-  if(showingLoseScreen) {
-    playerScore = 0;
-    playerLives = STARTING_LIVES;
-    showingLoseScreen = false;
-
-    bricksReset();
-    ballReset();
-  }
-  else if(showingWinScreen) {
-    showingWinScreen = false;
-
-    bricksReset();
-    ballReset();
+  if(showingTitleScreen) {
+    restartGame();
   } else if (ball.isStopped) {
     ball.push();
   }
@@ -48,18 +37,6 @@ function keyPressed(e) {
   e.preventDefault();
 
   if (e.keyCode === KEY_1) {
-    if (showingMenuScreen) {
-      isTwoPlayerMode = false;
-      restartGame();
-    }
-  }
-  else if (e.keyCode === KEY_2) {
-    if (showingMenuScreen) {
-      isTwoPlayerMode = true;
-      restartGame();
-    }
-  }
-  else {
     setKeyHoldState(e.keyCode, true);
   }
 }
@@ -69,16 +46,5 @@ function keyReleased(e) {
 }
 
 function setKeyHoldState(keyCode, isPressed) {
-  if (keyCode === paddle1.controlKeyUp) {
-    paddle1.keyHeld_Up	= isPressed;
-  }
-  else if (keyCode === paddle1.controlKeyDown) {
-    paddle1.keyHeld_Down	= isPressed;
-  }
-  else if (keyCode === paddle2.controlKeyUp) {
-    paddle2.keyHeld_Up	= isPressed;
-  }
-  else if (keyCode === paddle2.controlKeyDown) {
-    paddle2.keyHeld_Down	= isPressed;
-  }
+  
 }

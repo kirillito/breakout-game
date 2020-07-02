@@ -9,11 +9,11 @@ const BRICK_SCORE = 10;
 class BrickLevel {
   constructor() {
     this.grid = new Array(BRICK_ROWS * BRICK_COLS);
-    this.brickCounter = 0;
-    
+    this.brickCounter = 0;    
   }
 
   reset() {
+    this.brickCounter = 0;
     for (let i=3*BRICK_COLS; i<BRICK_ROWS * BRICK_COLS; i++) {
       this.grid[i]	= 1;
       this.brickCounter++;
@@ -36,7 +36,8 @@ class BrickLevel {
           let	brickX = j * BRICK_W;
           let	brickY = i * BRICK_H + TOP_INFO_HEIGHT;
   
-          drawRectangle(brickX,	brickY, BRICK_W - BRICK_GAP, BRICK_H - BRICK_GAP, 'blue');
+          drawImageCenteredAtLocationWithScaling(brick1Pic, brickX + BRICK_W/2,	brickY + BRICK_H/2, BRICK_W, BRICK_H);
+          
         }
       }
     }

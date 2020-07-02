@@ -1,13 +1,22 @@
 const BALL_RADIUS = 7;
+const BALL_SPEEDUP_RATE = 0.001;
+
+const BALL_TRAIL_SIZE = 5;
 
 class Ball {
   constructor() {
     this.x = 50;
     this.y = 50;
+    this.speedMultiplier = 1;
     this.isStopped = true;
+    this.brickHitCounter = 0;
+    
+    this.trail = new Array(BALL_TRAIL_SIZE);
+    this.imgSprite = null;
   }
 
-  init() {
+  init(img) {
+    this.imgSprite = img;
   }
 
   push() {
@@ -18,7 +27,7 @@ class Ball {
 
   reset() {
     if (playerLives <= 0) {
-      showingLoseScreen = true;
+      showingTitleScreen = true;
     }
   
     this.isStopped = true;
@@ -26,7 +35,10 @@ class Ball {
     this.speedY = 0;
     this.x = canvas.width/2
     this.y = paddle.y-PADDLE_THICKNESS-BALL_RADIUS*2;
-    paddle.x = (canvas.width-PADDLE_WIDTH)/2;
+    this.brickHitCounter = 0;
+    this.speedMultiplier = 1;
+
+    this.trail = this.trail.fill({x: this.x, y: this.y});
   }
 
   move() {
@@ -39,23 +51,33 @@ class Ball {
     if (this.y >= paddle.y-PADDLE_THICKNESS-BALL_RADIUS 
         && this.x >= paddle.x && this.x <= paddle.x+PADDLE_WIDTH
         && this.speedY > 0) {
-      this.speedY = -this.speedY
+      this.speedY = -this.speedY * this.speedMultiplier
   
       let deltaX = this.x - (paddle.x + PADDLE_WIDTH/2);
-      this.speedX = deltaX * 0.35;
+      this.speedX = deltaX * 0.35 * this.speedMultiplier;
+
+      this.speedMultiplier += BALL_SPEEDUP_RATE;
+      this.brickHitCounter = 0;
     } else if (this.y >= canvas.height) {
         playerLives--;
         if (!playerLives) {
-          showingLoseScreen = true;
+          showingTitleScreen = true;
+          playerLastScore = playerScore;
         }
   
         this.reset();
+        paddle.reset();
     }
-    if (this.x >= canvas.width-BALL_RADIUS || this.x <= BALL_RADIUS) {
-      this.speedX = -this.speedX
+    if (this.x >= canvas.width-BALL_RADIUS && this.speedX > 0) {
+      this.speedX = -this.speedX;
+    } else if (this.x <= BALL_RADIUS && this.speedX < 0) {
+      this.speedX = -this.speedX;
     }
   
     this.breakAndBounceOffBrickAtPixelCoord(this.x, this.y);
+
+    this.trail.shift();
+    this.trail.push({x: this.x, y: this.y});
   }
 
   breakAndBounceOffBrickAtPixelCoord(x, y) {
@@ -102,16 +124,25 @@ class Ball {
   
       brickLevel.grid[brickIndex] = 0;
       brickLevel.brickCounter--;
-      playerScore += BRICK_SCORE;
+      playerScore += (this.brickHitCounter + 1) * BRICK_SCORE;
+      this.brickHitCounter++;
       
-      if (brickLevel.brickCounter == 0) {
-        showingWinScreen = true;
+      if (brickLevel.brickCounter <= 0) {
+        showingTitleScreen = true;
+        playerLastScore = playerScore;
       }
     }
     return;
   }
 
   draw() {
-    drawCircle(this.x, this.y, BALL_RADIUS, 'yellow');
+    // trail
+    for (let i=this.trail.length-1; i>=0; i--) {
+      canvasContext.globalAlpha = 0.1*i;
+      drawImageCenteredAtLocationWithScaling(this.imgSprite, this.trail[i].x, this.trail[i].y, BALL_RADIUS*2, BALL_RADIUS*2);
+    }
+
+    canvasContext.globalAlpha = 1;
+    drawImageCenteredAtLocationWithScaling(this.imgSprite, this.x, this.y, BALL_RADIUS*2, BALL_RADIUS*2);
   }
 }
