@@ -26,7 +26,7 @@ class Ball {
   }
 
   reset() {
-    if (playerLives <= 0) {
+    if (player.lives <= 0) {
       showingTitleScreen = true;
     }
   
@@ -47,6 +47,7 @@ class Ball {
   
     if (this.y <=  BALL_RADIUS) {
       this.speedY = -this.speedY
+      soundBallHit.play();
     }
     if (this.y >= paddle.y-PADDLE_THICKNESS-BALL_RADIUS 
         && this.x >= paddle.x && this.x <= paddle.x+PADDLE_WIDTH
@@ -58,20 +59,20 @@ class Ball {
 
       this.speedMultiplier += BALL_SPEEDUP_RATE;
       this.brickHitCounter = 0;
+      soundBallHit.play();
     } else if (this.y >= canvas.height) {
-        playerLives--;
-        if (!playerLives) {
-          showingTitleScreen = true;
-          playerLastScore = playerScore;
-        }
+      player.loose();
   
-        this.reset();
-        paddle.reset();
+      soundBallMiss.play();
+      this.reset();
+      paddle.reset();
     }
     if (this.x >= canvas.width-BALL_RADIUS && this.speedX > 0) {
       this.speedX = -this.speedX;
+      soundBallHit.play();
     } else if (this.x <= BALL_RADIUS && this.speedX < 0) {
       this.speedX = -this.speedX;
+      soundBallHit.play();
     }
   
     this.breakAndBounceOffBrickAtPixelCoord(this.x, this.y);
@@ -103,6 +104,7 @@ class Ball {
         if (brickLevel.grid[adjacentBrickIndex] != 1)	{
           this.speedX = -this.speedX;
           bothTestsFailed	= false;
+          soundBallHit.play();
         }
       }
   
@@ -113,6 +115,7 @@ class Ball {
         if (brickLevel.grid[adjacentBrickIndex] != 1)	{
           this.speedY = -this.speedY;
           bothTestsFailed	= false;
+          soundBallHit.play();
         }
       }
   
@@ -120,16 +123,17 @@ class Ball {
       if (bothTestsFailed) {
         this.speedX = -this.speedX;
         this.speedY = -this.speedY;
+        soundBallHit.play();
       }
   
       brickLevel.grid[brickIndex] = 0;
       brickLevel.brickCounter--;
-      playerScore += (this.brickHitCounter + 1) * BRICK_SCORE;
+      player.addScore((this.brickHitCounter + 1) * BRICK_SCORE);
       this.brickHitCounter++;
       
       if (brickLevel.brickCounter <= 0) {
         showingTitleScreen = true;
-        playerLastScore = playerScore;
+        player.lastScore = player.score;
       }
     }
     return;
