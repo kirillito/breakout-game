@@ -1,5 +1,5 @@
 const BALL_RADIUS = 7;
-const BALL_SPEEDUP_RATE = 0.001;
+const BALL_SPEEDUP_RATE = 0.0005;
 
 const BALL_TRAIL_SIZE = 5;
 
@@ -91,7 +91,7 @@ class Ball {
   
     let brickIndex = brickLevel.brickCoordToIndex(row, col);
     // if brick is not removed
-    if (brickLevel.grid[brickIndex] == 1) {
+    if (brickLevel.grid[brickIndex] >= 1) {
       let previousCol = Math.floor((this.x-this.speedX) / BRICK_W);
       let previousRow = Math.floor((this.y-this.speedY) / BRICK_H);
   
@@ -126,14 +126,20 @@ class Ball {
         soundBallHit.play();
       }
   
-      brickLevel.grid[brickIndex] = 0;
-      brickLevel.brickCounter--;
-      player.addScore((this.brickHitCounter + 1) * BRICK_SCORE);
-      this.brickHitCounter++;
-      
-      if (brickLevel.brickCounter <= 0) {
-        showingTitleScreen = true;
-        player.lastScore = player.score;
+      if (brickLevel.grid[brickIndex] <= 5) {
+        brickLevel.grid[brickIndex]--;
+
+        if (brickLevel.grid[brickIndex] === 0) {
+          brickLevel.brickCounter--;
+          player.addScore((this.brickHitCounter + 1) * BRICK_SCORE);
+          this.brickHitCounter++;
+          
+          if (brickLevel.brickCounter <= 0) {
+            showingTitleScreen = true;
+            player.lastScore = player.score;
+          }
+        }
+ 
       }
     }
     return;
