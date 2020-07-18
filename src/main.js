@@ -15,6 +15,7 @@ const ball = new Ball();
 const paddle = new Paddle();
 
 let brickLevel = new BrickLevel();
+let powerUps = new Array();
 
 const TOP_INFO_HEIGHT = 20
 
@@ -28,7 +29,7 @@ window.onload = function() {
   loadImages();
 
   ball.reset();
-  brickLevel.reset();
+  brickLevel.reset(brickLevel.LEVEL1_GRID);
   paddle.reset();
 }
 
@@ -53,7 +54,7 @@ function startGame() {
 function restartGame() {
   player.reset();
   ball.reset();
-  brickLevel.reset();
+  brickLevel.reset(brickLevel.LEVEL1_GRID);
   paddle.reset();
 
   showingTitleScreen = false;
@@ -61,11 +62,28 @@ function restartGame() {
   musicBackground.loopMusic('assets/sounds/music');
 }
 
+function nextLevel() {
+  player.currentLevel++;
+  if (player.currentLevel === 2) {
+    ball.reset();
+    brickLevel.reset(brickLevel.LEVEL2_GRID);
+    paddle.reset();
+  } else if (player.currentLevel === 3) {
+    ball.reset();
+    brickLevel.reset(brickLevel.LEVEL3_GRID);
+    paddle.reset();
+  } else {
+    showingTitleScreen = true;
+  }
+}
 
 function update() {
   if(showingTitleScreen) {
     return;
   }
+
+  powerUps.forEach(p => p.move());
+  powerUps = powerUps.filter(p => p.y < canvas.height);
 
   ball.move();
 }
@@ -80,6 +98,8 @@ function draw() {
   } 
 
   brickLevel.draw();
+
+  powerUps.forEach(p => p.draw());
 
   // paddle
   paddle.draw();

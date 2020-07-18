@@ -76,8 +76,8 @@ class BrickLevel {
     this.brickImages = [null, brick1Pic, brick2Pic, brick3Pic, null, null, brick6Pic];
   }
 
-  reset() {
-    this.buildLevel(this.LEVEL1_GRID);
+  reset(level) {
+    this.buildLevel(level);
   }
 
   buildLevel(levelGrid) {

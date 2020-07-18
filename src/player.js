@@ -11,10 +11,12 @@ class Player {
     this.lastScore = 0;
     this.lives = STARTING_LIVES;
     this.scoreUntilBonusLife = SCORE_UNTIL_BONUS_LIFE_DEFAULT;
+    this.currentLevel = 1;
   }
 
   reset() {
     this.score = 0;
+    this.currentLevel = 1;
   }
   
   addScore(score) {
@@ -50,7 +52,6 @@ class Player {
     if (this.displayBonusMessageCounter > 0) {
       drawColoredText('Bonus life for ' + SCORE_UNTIL_BONUS_LIFE_DEFAULT + ' scores!', canvas.width - 400, 10, 'yellow');
       this.displayBonusMessageCounter--;
-    }
-  
+    }  
   }
 }

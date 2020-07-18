@@ -24,6 +24,10 @@ class Ball {
     this.speedX = 10;
     this.speedY = 10;
   }
+  
+  spawnPowerUp(x, y) {
+    powerUps.push(new PowerUp(x,y));
+  }
 
   reset() {
     if (player.lives <= 0) {
@@ -45,7 +49,7 @@ class Ball {
     this.x = this.x + this.speedX;
     this.y = this.y + this.speedY;
   
-    if (this.y <=  BALL_RADIUS) {
+    if (this.y <=  BALL_RADIUS+TOP_INFO_HEIGHT) {
       this.speedY = -this.speedY
       soundBallHit.play();
     }
@@ -101,7 +105,7 @@ class Ball {
       if (previousCol != col) {
         // make sure that there is no horizontally adjacent brick from where the ball is coming
         let	adjacentBrickIndex	=	brickLevel.brickCoordToIndex(row, previousCol);
-        if (brickLevel.grid[adjacentBrickIndex] != 1)	{
+        if (brickLevel.grid[adjacentBrickIndex] === undefined || brickLevel.grid[adjacentBrickIndex] === 0)	{
           this.speedX = -this.speedX;
           bothTestsFailed	= false;
           soundBallHit.play();
@@ -112,7 +116,7 @@ class Ball {
       if (previousRow != row) {
         // make sure that there is no vertically adjacent brick from where the ball is coming
         let	adjacentBrickIndex	=	brickLevel.brickCoordToIndex(previousRow, col);
-        if (brickLevel.grid[adjacentBrickIndex] != 1)	{
+        if (brickLevel.grid[adjacentBrickIndex] === undefined || brickLevel.grid[adjacentBrickIndex] === 0)	{
           this.speedY = -this.speedY;
           bothTestsFailed	= false;
           soundBallHit.play();
@@ -133,10 +137,11 @@ class Ball {
           brickLevel.brickCounter--;
           player.addScore((this.brickHitCounter + 1) * BRICK_SCORE);
           this.brickHitCounter++;
+          this.spawnPowerUp(this.x, this.y);
           
-          if (brickLevel.brickCounter <= 0) {
-            showingTitleScreen = true;
+          if (brickLevel.brickCounter <= 0) {            
             player.lastScore = player.score;
+            nextLevel();
           }
         }
  

@@ -1,3 +1,7 @@
+
+const KEY_1 = 49;
+const KEY_2 = 50;
+
 function initInput() {
   canvas.addEventListener('mousemove', 
     function(e) {
@@ -9,6 +13,7 @@ function initInput() {
       }
     }
   );
+  document.addEventListener('keydown', keyPressed);
 
   canvas.addEventListener('mousedown', handleMouseClick);
 }
@@ -39,12 +44,4 @@ function keyPressed(e) {
   if (e.keyCode === KEY_1) {
     setKeyHoldState(e.keyCode, true);
   }
-}
-
-function keyReleased(e) {
-  setKeyHoldState(e.keyCode, false);
-}
-
-function setKeyHoldState(keyCode, isPressed) {
-  
 }
