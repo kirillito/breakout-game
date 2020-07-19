@@ -29,7 +29,7 @@ window.onload = function() {
   loadImages();
 
   ball.reset();
-  brickLevel.reset(brickLevel.LEVEL1_GRID);
+  brickLevel.reset(brickLevel.LEVEL_LAYOUTS[1]);
   paddle.reset();
 }
 
@@ -54,7 +54,7 @@ function startGame() {
 function restartGame() {
   player.reset();
   ball.reset();
-  brickLevel.reset(brickLevel.LEVEL1_GRID);
+  brickLevel.reset(brickLevel.LEVEL_LAYOUTS[1]);
   paddle.reset();
 
   showingTitleScreen = false;
@@ -64,13 +64,9 @@ function restartGame() {
 
 function nextLevel() {
   player.currentLevel++;
-  if (player.currentLevel === 2) {
+  if (player.currentLevel <= 3) {
     ball.reset();
-    brickLevel.reset(brickLevel.LEVEL2_GRID);
-    paddle.reset();
-  } else if (player.currentLevel === 3) {
-    ball.reset();
-    brickLevel.reset(brickLevel.LEVEL3_GRID);
+    brickLevel.reset(brickLevel.LEVEL_LAYOUTS[player.currentLevel-1]);
     paddle.reset();
   } else {
     showingTitleScreen = true;
@@ -83,9 +79,10 @@ function update() {
   }
 
   powerUps.forEach(p => p.move());
-  powerUps = powerUps.filter(p => p.y < canvas.height);
+  powerUps = powerUps.filter(p => !p.isDestroyed);
 
   ball.move();
+  paddle.update();
 }
 
 function draw() {	

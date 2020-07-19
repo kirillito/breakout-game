@@ -9,6 +9,7 @@ class Ball {
     this.y = 50;
     this.speedMultiplier = 1;
     this.isStopped = true;
+    this.isFireMode = false;
     this.brickHitCounter = 0;
     
     this.trail = new Array(BALL_TRAIL_SIZE);
@@ -35,6 +36,8 @@ class Ball {
     }
   
     this.isStopped = true;
+    this.isFireMode = false;    
+    this.powerUpTimer = 0;
     this.speedX = 0;
     this.speedY = 0;
     this.x = canvas.width/2
@@ -45,20 +48,32 @@ class Ball {
     this.trail = this.trail.fill({x: this.x, y: this.y});
   }
 
+  resetPowerUp() {
+    this.isFireMode = false;
+  }
+
+  powerUp(type) {
+    if (type === 'fireball') {
+      this.resetPowerUp();
+      this.isFireMode = true;
+      this.powerUpTimer = 150;
+    }
+  }
+
   move() {
     this.x = this.x + this.speedX;
     this.y = this.y + this.speedY;
   
-    if (this.y <=  BALL_RADIUS+TOP_INFO_HEIGHT) {
+    if (this.y <=  BALL_RADIUS) {
       this.speedY = -this.speedY
       soundBallHit.play();
     }
     if (this.y >= paddle.y-PADDLE_THICKNESS-BALL_RADIUS 
-        && this.x >= paddle.x && this.x <= paddle.x+PADDLE_WIDTH
+        && this.x >= paddle.x && this.x <= paddle.x+paddle.width
         && this.speedY > 0) {
       this.speedY = -this.speedY * this.speedMultiplier
   
-      let deltaX = this.x - (paddle.x + PADDLE_WIDTH/2);
+      let deltaX = this.x - (paddle.x + paddle.width/2);
       this.speedX = deltaX * 0.35 * this.speedMultiplier;
 
       this.speedMultiplier += BALL_SPEEDUP_RATE;
@@ -83,6 +98,11 @@ class Ball {
 
     this.trail.shift();
     this.trail.push({x: this.x, y: this.y});
+    
+    this.powerUpTimer--;
+    if (this.powerUpTimer <= 0) {
+      this.resetPowerUp();
+    }
   }
 
   breakAndBounceOffBrickAtPixelCoord(x, y) {
@@ -96,38 +116,40 @@ class Ball {
     let brickIndex = brickLevel.brickCoordToIndex(row, col);
     // if brick is not removed
     if (brickLevel.grid[brickIndex] >= 1) {
-      let previousCol = Math.floor((this.x-this.speedX) / BRICK_W);
-      let previousRow = Math.floor((this.y-this.speedY) / BRICK_H);
-  
-      let bothTestsFailed = true;
-  
-      // ball changed columns of the brick grid
-      if (previousCol != col) {
-        // make sure that there is no horizontally adjacent brick from where the ball is coming
-        let	adjacentBrickIndex	=	brickLevel.brickCoordToIndex(row, previousCol);
-        if (brickLevel.grid[adjacentBrickIndex] === undefined || brickLevel.grid[adjacentBrickIndex] === 0)	{
+      if (!this.isFireMode) {
+        let previousCol = Math.floor((this.x-this.speedX) / BRICK_W);
+        let previousRow = Math.floor((this.y-this.speedY) / BRICK_H);
+    
+        let bothTestsFailed = true;
+    
+        // ball changed columns of the brick grid
+        if (previousCol != col) {
+          // make sure that there is no horizontally adjacent brick from where the ball is coming
+          let	adjacentBrickIndex	=	brickLevel.brickCoordToIndex(row, previousCol);
+          if (brickLevel.grid[adjacentBrickIndex] === undefined || brickLevel.grid[adjacentBrickIndex] === 0)	{
+            this.speedX = -this.speedX;
+            bothTestsFailed	= false;
+            soundBallHit.play();
+          }
+        }
+    
+        // ball changed rows of the brick grid
+        if (previousRow != row) {
+          // make sure that there is no vertically adjacent brick from where the ball is coming
+          let	adjacentBrickIndex	=	brickLevel.brickCoordToIndex(previousRow, col);
+          if (brickLevel.grid[adjacentBrickIndex] === undefined || brickLevel.grid[adjacentBrickIndex] === 0)	{
+            this.speedY = -this.speedY;
+            bothTestsFailed	= false;
+            soundBallHit.play();
+          }
+        }
+    
+        // the ball hit three bricks in L-like shape - reverse movement 
+        if (bothTestsFailed) {
           this.speedX = -this.speedX;
-          bothTestsFailed	= false;
-          soundBallHit.play();
-        }
-      }
-  
-      // ball changed rows of the brick grid
-      if (previousRow != row) {
-        // make sure that there is no vertically adjacent brick from where the ball is coming
-        let	adjacentBrickIndex	=	brickLevel.brickCoordToIndex(previousRow, col);
-        if (brickLevel.grid[adjacentBrickIndex] === undefined || brickLevel.grid[adjacentBrickIndex] === 0)	{
           this.speedY = -this.speedY;
-          bothTestsFailed	= false;
           soundBallHit.play();
         }
-      }
-  
-      // the ball hit three bricks in L-like shape - reverse movement 
-      if (bothTestsFailed) {
-        this.speedX = -this.speedX;
-        this.speedY = -this.speedY;
-        soundBallHit.play();
       }
   
       if (brickLevel.grid[brickIndex] <= 5) {

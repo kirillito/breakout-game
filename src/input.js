@@ -6,7 +6,7 @@ function initInput() {
   canvas.addEventListener('mousemove', 
     function(e) {
       let mousePos = calculateMousePos(e);
-      paddle.x = mousePos.x - PADDLE_WIDTH/2;
+      paddle.x = mousePos.x - paddle.width/2;
 
       if (ball.isStopped) {
         ball.x = mousePos.x;
