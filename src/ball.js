@@ -27,6 +27,7 @@ class Ball {
   }
   
   spawnPowerUp(x, y) {
+    if (Math.random() < 0.08)
     powerUps.push(new PowerUp(x,y));
   }
 

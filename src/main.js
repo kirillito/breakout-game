@@ -54,7 +54,7 @@ function startGame() {
 function restartGame() {
   player.reset();
   ball.reset();
-  brickLevel.reset(brickLevel.LEVEL_LAYOUTS[1]);
+  brickLevel.reset(brickLevel.LEVEL_LAYOUTS[0]);
   paddle.reset();
 
   showingTitleScreen = false;
