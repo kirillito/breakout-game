@@ -6,9 +6,10 @@ let canvasContext;
 let audioFormat = ".mp3";
 
 const musicBackground = new MusicWrapper();
-const soundBallHit = new SoundWrapper('assets/sounds/hit');
-const soundBallMiss = new SoundWrapper('assets/sounds/miss');
-const soundBonus = new SoundWrapper('assets/sounds/bonus');
+const soundBallHit = new SoundWrapper(ASSETS.sounds.hit);
+const soundBallMiss = new SoundWrapper(ASSETS.sounds.miss);
+const soundBonus = new SoundWrapper(ASSETS.sounds.bonus);
+const soundPowerUp = new SoundWrapper(ASSETS.sounds.powerUpPickup);
 
 const player = new Player();
 const ball = new Ball();
@@ -20,6 +21,7 @@ let powerUps = new Array();
 const TOP_INFO_HEIGHT = 20
 
 let showingTitleScreen = false;
+let isPaused = false;
 
 window.onload = function() {
   canvas = document.getElementById('gameCanvas');
@@ -58,8 +60,9 @@ function restartGame() {
   paddle.reset();
 
   showingTitleScreen = false;
+  isPaused = false;
 
-  musicBackground.loopMusic('assets/sounds/music');
+  musicBackground.loopMusic(ASSETS.music);
 }
 
 function nextLevel() {
@@ -74,7 +77,7 @@ function nextLevel() {
 }
 
 function update() {
-  if(showingTitleScreen) {
+  if(showingTitleScreen || isPaused) {
     return;
   }
 
@@ -105,6 +108,31 @@ function draw() {
   ball.draw();
 
   player.draw();
+  drawActivePowerUpHud();
+
+  if (isPaused) {
+    drawPauseOverlay();
+  }
+}
+
+function togglePause() {
+  if (showingTitleScreen) return;
+  isPaused = !isPaused;
+  if (musicBackground.musicSound) {
+    isPaused ? musicBackground.musicSound.pause() : musicBackground.musicSound.play();
+  }
+}
+
+function drawPauseOverlay() {
+  canvasContext.save();
+  canvasContext.fillStyle = 'rgba(0,0,0,0.5)';
+  canvasContext.fillRect(0, 0, canvas.width, canvas.height);
+  canvasContext.font = "60px Arial bold";
+  canvasContext.fillStyle = 'white';
+  canvasContext.fillText("Paused", 300, 300);
+  canvasContext.font = "20px Arial";
+  canvasContext.fillText("Press P or Esc to resume", 300, 340);
+  canvasContext.restore();
 }
 
 function drawTitleScreen() {

@@ -1,5 +1,6 @@
 const PADDLE_THICKNESS = 10;
 const PADDLE_WIDTH = 100;
+const PADDLE_KEY_SPEED = 12; // px per frame
 
 class Paddle {
   constructor() {
@@ -23,6 +24,15 @@ class Paddle {
   }
 
   update() {
+    // Keyboard movement (mouse movement is handled in input.js)
+    let dir = (keysHeld.right ? 1 : 0) - (keysHeld.left ? 1 : 0);
+    if (dir !== 0) {
+      this.x = Math.max(0, Math.min(canvas.width - this.width, this.x + dir * PADDLE_KEY_SPEED));
+      if (ball.isStopped) {
+        ball.x = this.x + this.width/2;
+      }
+    }
+
     this.powerUpTimer--;
     if (this.powerUpTimer <= 0) {
       this.resetPowerUp();
@@ -37,7 +47,7 @@ class Paddle {
     if (type === 'superpaddle') {
       this.resetPowerUp();
       this.width *= 2;
-      this.powerUpTimer = 300;
+      this.powerUpTimer = SUPERPADDLE_DURATION;
     }
   }
 

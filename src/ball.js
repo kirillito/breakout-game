@@ -11,6 +11,11 @@ class Ball {
     this.isStopped = true;
     this.isFireMode = false;
     this.brickHitCounter = 0;
+    this.speedX = 0;
+    this.speedY = 0;
+    this.powerUpTimer = 0;  // fireball frames left
+    this.slowTimer = 0;     // slowball frames left
+    this.speedScale = 1;    // < 1 while slowball is active
     
     this.trail = new Array(BALL_TRAIL_SIZE);
     this.imgSprite = null;
@@ -39,6 +44,7 @@ class Ball {
     this.isStopped = true;
     this.isFireMode = false;    
     this.powerUpTimer = 0;
+    this.resetSlow();
     this.speedX = 0;
     this.speedY = 0;
     this.x = canvas.width/2
@@ -53,17 +59,26 @@ class Ball {
     this.isFireMode = false;
   }
 
+  resetSlow() {
+    this.slowTimer = 0;
+    this.speedScale = 1;
+  }
+
   powerUp(type) {
     if (type === 'fireball') {
       this.resetPowerUp();
       this.isFireMode = true;
-      this.powerUpTimer = 150;
+      this.powerUpTimer = FIREBALL_DURATION;
+    } else if (type === 'slowball') {
+      this.slowTimer = SLOWBALL_DURATION;
+      this.speedScale = SLOWBALL_FACTOR;
     }
   }
 
   move() {
-    this.x = this.x + this.speedX;
-    this.y = this.y + this.speedY;
+    // speedScale slows the ball without touching the bounce logic
+    this.x = this.x + this.speedX * this.speedScale;
+    this.y = this.y + this.speedY * this.speedScale;
   
     if (this.y <=  BALL_RADIUS) {
       this.speedY = -this.speedY
@@ -104,6 +119,11 @@ class Ball {
     if (this.powerUpTimer <= 0) {
       this.resetPowerUp();
     }
+
+    this.slowTimer--;
+    if (this.slowTimer <= 0) {
+      this.resetSlow();
+    }
   }
 
   breakAndBounceOffBrickAtPixelCoord(x, y) {
@@ -118,8 +138,8 @@ class Ball {
     // if brick is not removed
     if (brickLevel.grid[brickIndex] >= 1) {
       if (!this.isFireMode) {
-        let previousCol = Math.floor((this.x-this.speedX) / BRICK_W);
-        let previousRow = Math.floor((this.y-this.speedY) / BRICK_H);
+        let previousCol = Math.floor((this.x-this.speedX*this.speedScale) / BRICK_W);
+        let previousRow = Math.floor((this.y-this.speedY*this.speedScale) / BRICK_H);
     
         let bothTestsFailed = true;
     

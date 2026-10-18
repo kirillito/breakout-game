@@ -32,6 +32,14 @@ class Player {
     }
   }
 
+  addLife() {
+    if (this.lives < MAX_LIVES) {
+      this.lives++;
+    } else {
+      this.addScore(BRICK_SCORE * 10); // already full: convert to points
+    }
+  }
+
   loose() {
     this.lives--;
     if (!this.lives) {
